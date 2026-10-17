@@ -258,8 +258,3 @@ This project uses:
 - Tesseract OCR
 - spaCy
 - Python ecosystem libraries
-
-If you want, I can also give you:
-- a more polished GitHub-style README with badges
-- a shorter README for a public profile
-- or a README tailored specifically for a portfolio project
