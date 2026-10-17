@@ -1,260 +1,139 @@
 # Intelligent Invoice Data Extraction
 
-An end-to-end computer vision and NLP pipeline for extracting structured information from invoice documents.
+An end-to-end invoice document-processing pipeline that combines **YOLOv8 field detection, OCR, named-entity recognition, and rule-based post-processing** to convert invoice images into structured JSON.
 
-This project combines YOLOv8-based field detection, OCR, named-entity recognition (NER), and post-processing logic to convert invoice images into structured JSON output for downstream business workflows.
+## Pipeline
 
-## Overview
+```text
+Invoice image
+      ↓
+YOLOv8 field detection
+      ↓
+Bounding-box crops
+      ↓
+Tesseract OCR
+      ↓
+spaCy NER
+      ↓
+Rule-based normalization
+      ↓
+Structured JSON
+```
 
-The project is designed to identify important invoice components such as:
+## What it demonstrates
 
-- invoice number
-- invoice date
-- due date
-- total amount
-- subtotal
-- tax
-- seller name and address
-- buyer details
-- GST information
+- Object detection for locating invoice fields.
+- OCR for reading text from detected regions.
+- NER for semantic interpretation of OCR output.
+- Rule-based normalization into a stable JSON schema.
+- Modular Python code with a reusable package and CLI runner.
+- Automated tests and GitHub Actions CI.
 
-The pipeline works as follows:
+## Extracted information
 
-Invoice image → YOLOv8 detection → bounding box cropping → OCR extraction → NER processing → rule-based normalization → structured JSON
-
-## Why this project exists
-
-This repository demonstrates how a practical invoice processing workflow can be built using:
-
-- object detection for locating relevant invoice regions
-- OCR for extracting text from detected boxes
-- NLP for understanding field semantics
-- rule-based post-processing for structured output generation
-
-The project is useful for learning, experimentation, and building a foundation for a production invoice extraction system.
-
-## Tech stack
-
-- Python
-- OpenCV
-- Tesseract OCR
-- Ultralytics YOLOv8
-- spaCy
-- spaCy transformer model
-- JSON output
+The normalization layer supports invoice identifiers, dates, due dates, totals, subtotal, tax/GST, seller details, buyer details, and GSTIN fields.
 
 ## Repository structure
 
 ```text
-invoice-data-extraction/
-├── README.md
-├── LICENSE
-├── requirements.txt
-├── .gitignore
-├── main.py
-├── src/
-│   └── invoice_extraction/
-│       ├── __init__.py
-│       ├── ocr.py
-│       ├── ner.py
-│       └── postproc.py
+.
+├── src/invoice_extraction/
+│   ├── __init__.py
+│   ├── ocr.py
+│   ├── ner.py
+│   └── postproc.py
 ├── scripts/
 │   └── run_pipeline.py
-├── notebooks/
-│   ├── main.ipynb
-│   ├── main_small_dataset.ipynb
-│   └── bb_to_str.ipynb
 ├── tests/
 │   └── test_postproc.py
+├── notebooks/
 ├── examples/
-│   ├── Inv1.jpg
-│   └── hdsample.jpg
-├── .github/
-│   └── workflows/
-│       └── python.yml
-├── data/
-│   └── (gitignored raw and processed data)
-└── results/
-    └── generated JSON artifacts
+├── data/                  # local datasets, ignored by Git
+├── .github/workflows/ci.yml
+├── main.py                # YOLO training entry point
+├── requirements.txt
+└── README.md
 ```
 
-## Project workflow
+## Setup
 
-### 1. Training / detection stage
-`main.py` is the YOLO-based training script. It uses a custom invoice dataset to detect invoice fields such as:
-
-- total
-- date
-- seller name
-- buyer
-- tax
-- subtotal
-- GSTIN
-- logo
-- table
-- etc.
-
-### 2. OCR stage
-`ocr.py` reads the YOLO output JSON and crops each detected bounding box from the invoice image. It then runs Tesseract OCR to extract text from each region.
-
-### 3. NER stage
-`ner.py` takes the OCR output and applies a spaCy NER model to assign semantic labels to extracted text.
-
-### 4. Final structuring stage
-`postproc.py` applies regex- and rule-based extraction to normalize the OCR/NER results into a final invoice JSON structure.
-
-## Installation
-
-### Prerequisites
-
-- Python 3.9+
-- Tesseract OCR installed on the system
-- pip and virtual environment support
-
-### Install dependencies
+Create a virtual environment and install the runtime dependencies:
 
 ```bash
+python -m venv .venv
 pip install -r requirements.txt
 ```
 
-### Install spaCy transformer model
+Install the spaCy transformer model:
 
 ```bash
 python -m spacy download en_core_web_trf
 ```
 
-### Install Tesseract OCR
+Install Tesseract OCR separately.
 
-#### Windows
-Download and install Tesseract from:
-https://github.com/UB-Mannheim/tesseract/wiki
+## Run inference
 
-Then update the OCR path if needed in the code.
-
-#### Linux (Ubuntu/Debian)
-```bash
-sudo apt-get update
-sudo apt-get install -y tesseract-ocr
-```
-
-#### macOS
-```bash
-brew install tesseract
-```
-
-## Setup for local execution
-
-### Option 1: Run the pipeline using the wrapper script
+Prepare YOLO field-detection output in JSON format, then run:
 
 ```bash
-PYTHONPATH=$PWD:$PWD/src python scripts/run_pipeline.py \
-  --yolo-json output.json \
-  --image path/to/invoice.jpg \
-  --ocr-out ocr_output.json \
-  --ner-out structured_output.json \
-  --final-out final_output.json
+python scripts/run_pipeline.py \
+  --yolo-json path/to/output.json \
+  --image examples/Inv1.jpg
 ```
 
-### Option 2: Run the pipeline manually
+On Windows, pass the Tesseract executable path when necessary:
+
+```text
+--tesseract-cmd "C:\Program Files\Tesseract-OCR\tesseract.exe"
+```
+
+## Train the detector
+
+The training entry point is configurable:
 
 ```bash
-python main.py
-python src/invoice_extraction/ocr.py output.json path/to/invoice.jpg
-python src/invoice_extraction/ner.py --ocr-in ocr_output.json --out structured_output.json
-python src/invoice_extraction/postproc.py --in structured_output.json --out final_output.json
+python main.py --data path/to/dataset.yaml --epochs 1 --imgsz 640 --batch 16
 ```
 
-## Expected output format
+Large datasets and trained model artifacts are intentionally kept outside the repository.
 
-The final output is JSON and typically looks like this:
+## Tests
 
-```json
-{
-  "Invoice Id": "INV-1024",
-  "Date": "12/01/2025",
-  "Due Date": "20/01/2025",
-  "Total": "₹1800.00",
-  "Sub Total": "₹1500.00",
-  "GST(18%)": "₹300.00",
-  "Seller Name": "ABC Traders",
-  "Seller Address": "123 Market Road, Bengaluru",
-  "Buyer": "XYZ Retail Pvt Ltd",
-  "GSTIN Buyer": "29ABCDE1234F1Z5",
-  "GSTIN Seller": "29XYZAB5678C1Z3"
-}
-```
-
-The exact values depend on the invoice source and the OCR/NER quality.
-
-## Running tests
-
-The project includes lightweight unit tests for the parsing and normalization logic.
+The deterministic post-processing tests do not require the YOLO model, Tesseract, or spaCy transformer model:
 
 ```bash
-pytest -q
+PYTHONPATH=src pytest -q
 ```
 
-## Notebook usage
+GitHub Actions runs these tests automatically on pushes and pull requests.
 
-The repository includes experimental notebook-based workflows for:
+## Example data
 
-- invoice field detection
-- OCR extraction
-- post-processing
-- model training
+The repository contains **synthetic/demo invoices with no real personal or company information**.
 
-These notebooks are useful for prototyping and exploration. You may move them to a dedicated notebook directory or keep them in the root as working experiments.
+Example output values are illustrative.
 
-## Configuration tips
+## Evaluation
 
-Some project settings are hard-coded and may need adjustment when running on a new machine:
+The original project reported approximately **93% field-extraction accuracy** on its available invoice template set. This is a project-specific result and is not presented as a general benchmark.
 
-- Tesseract executable path
-- dataset path
-- image path
-- spaCy model name
-- output paths
+## Limitations and next steps
 
-A good next step is to refactor these values into environment variables or a configuration file.
+This remains a prototype rather than a production invoice-extraction service. The most valuable next engineering steps are:
 
-## Roadmap
-
-Planned improvements for this repository include:
-
-- create a cleaner package structure
-- add reusable config files
-- add robust validation of extracted fields
-- improve regex extraction for multiple invoice templates
-- add type hints and dataclasses
-- add CI/CD pipeline
-- add package installation support
-- build a lightweight API service around the pipeline
-- add dataset versioning and reproducibility tools
-
-## Limitations
-
-This project is a research/prototype-style repository and not yet a production-ready invoice extraction service. It is best treated as:
-
-- a learning project
-- a demonstration pipeline
-- a base for a more robust extraction engine
+- reproducible field-level benchmarks;
+- confidence scores and validation rules;
+- stronger multi-template handling;
+- model/data versioning;
+- an API service around inference;
+- containerized deployment;
+- broader integration tests.
 
 ## License
 
-This project is licensed under the MIT License unless otherwise specified.
+MIT
 
 ## Author
 
 Ronak Vekariya
-
-GitHub: https://github.com/Ronakvekariya
-
-## Acknowledgements
-
-This project uses:
-
-- Ultralytics YOLOv8
-- OpenCV
-- Tesseract OCR
-- spaCy
-- Python ecosystem libraries
