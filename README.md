@@ -124,6 +124,10 @@ The original project reported approximately **93% field-extraction accuracy** on
   <img src="results/3.PNG" alt="Project Screenshot" width="500">
 </p>
 
+## Sample Demo
+
+[▶ Watch the full demo on YouTube]([https://youtu.be/OmJW2CaqQpI](https://youtu.be/HOlwCRWGN5E))
+
 ## Limitations and next steps
 
 This remains a prototype rather than a production invoice-extraction service. The most valuable next engineering steps are:
