@@ -118,6 +118,10 @@ Example output values are illustrative.
 
 The original project reported approximately **93% field-extraction accuracy** on its available invoice template set. This is a project-specific result and is not presented as a general benchmark.
 
+## Sample Output
+
+![Project Screenshot](results/3.png)
+
 ## Limitations and next steps
 
 This remains a prototype rather than a production invoice-extraction service. The most valuable next engineering steps are:
