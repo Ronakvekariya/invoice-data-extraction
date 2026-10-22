@@ -126,7 +126,7 @@ The original project reported approximately **93% field-extraction accuracy** on
 
 ## Sample Demo
 
-[▶ Watch the full demo on YouTube]([https://youtu.be/OmJW2CaqQpI](https://youtu.be/HOlwCRWGN5E))
+[▶ Watch the full demo on YouTube](https://youtu.be/HOlwCRWGN5E)
 
 ## Limitations and next steps
 
