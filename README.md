@@ -120,7 +120,7 @@ The original project reported approximately **93% field-extraction accuracy** on
 
 ## Sample Output
 
-![Project Screenshot](results/3.png)
+![Project Screenshot](../results/3.PNG)
 
 ## Limitations and next steps
 
