@@ -122,6 +122,10 @@ The original project reported approximately **93% field-extraction accuracy** on
 
 ![Project Screenshot](results/3.PNG)
 
+<p align="center">
+  <img src="results/3.PNG" alt="Project Screenshot" width="500">
+</p>
+
 ## Limitations and next steps
 
 This remains a prototype rather than a production invoice-extraction service. The most valuable next engineering steps are:
